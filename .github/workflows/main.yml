@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       video_url:
-        description: 'YouTube URL to download'
+        description: 'YouTube URL (Standard, Short, or Playlist)'
         required: true
 
 jobs:
@@ -12,50 +12,45 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: 1. Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: 2. Set up Python 3.10
         uses: actions/setup-python@v5
         with:
-          # Fixed: Use a dash, not an underscore
           python-version: '3.10'
 
-      - name: Install FFmpeg & Dependencies
-        run: |
-          sudo apt-get update && sudo apt-get install -y ffmpeg
-          pip install yt-dlp nodejs-bin  # Added nodejs-bin here
-
-      - name: Install Dependencies
-        run: pip3 install yt-dlp
-
-      - name: Install JS Runtime
-        run: sudo apt-get install -y nodejs # This gives yt-dlp the 'engine' it needs
-
-      - name: Create Cookies File
-        # This takes your secret and writes it to a file the script can see
-        run: echo "${{ secrets.YT_COOKIES }}" > cookies.txt
-
-      - name: Install Node.js
+      - name: 3. Set up Node.js 20 (JS Runtime for Signatures)
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Run Download Script
+      - name: 4. Install System Dependencies (FFmpeg)
         run: |
-          # This forces the Python environment to see the nodejs-bin we installed
-          export PATH=$PATH:$(python -c "import os, sysconfig; print(sysconfig.get_path('scripts'))")
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: 5. Install Python Dependencies (yt-dlp)
+        run: pip install yt-dlp
+
+      - name: 6. Inject Authentication Cookies
+        # Using GitHub Secrets to bypass bot-detection
+        run: echo "${{ secrets.YT_COOKIES }}" > cookies.txt
+
+      - name: 7. Execute Downloader Script
+        run: |
+          # Explicitly export Node path to ensure yt-dlp solves n-challenges
+          export YTDLP_NODE_PATH=$(which node)
           python downloader.py <<EOF
           ${{ github.event.inputs.video_url }}
           EOF
 
-      - name: Upload Video Artifact
+      - name: 8. Upload Resulting Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: downloaded-video
-          # Fixed: This will now find .mkv, .mp4, or .webm files
+          name: youtube-media-export
           path: |
             ./*.mkv
             ./*.mp4
             ./*.webm
-          if-no-files-found: error # This will make the job "Fail" if it can't find the video, which is better for debugging
+          if-no-files-found: error
