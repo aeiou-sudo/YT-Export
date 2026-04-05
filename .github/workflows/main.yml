@@ -38,12 +38,10 @@ jobs:
         run: echo "${{ secrets.YT_COOKIES }}" > cookies.txt
 
       - name: 7. Execute Downloader Script
+        env:
+          YTDLP_NODE_PATH: $(which node)
         run: |
-          # Clean up the PATH
-          export PATH=$PATH:$(which node)
-          export YTDLP_NODE_PATH=$(which node)
-          
-          # Force python to use the standard node location
+          # Use the '--allow-unplayable' flag in the command line if needed
           python downloader.py <<EOF
           ${{ github.event.inputs.video_url }}
           EOF
