@@ -1,91 +1,73 @@
-# YouTube PO-Token Extraction & Automation
+# 📺 YT-Export: Automated Media Archival Framework
 
-This repository provides a technical framework for identifying, extracting, and implementing **Proof of Origin (PO) Tokens** and **Visitor Data** required to bypass `403 Forbidden` errors and playback throttling on YouTube.
-
-## 📋 Overview
-
-YouTube uses a client-side integrity system (BotGuard) to verify that requests originate from a legitimate browser environment. The **PO Token** is a cryptographic string generated after a series of browser challenges. Without this token, automated tools (like `yt-dlp` or custom scrapers) are increasingly flagged as bots.
-
-### Key Components
-| Component | Description |
-| :--- | :--- |
-| **PO Token** | Proof of Origin; validates the session integrity. |
-| **Visitor Data** | A unique identifier (`visitorData`) linked to the initial request. |
-| **Integrity Service** | The `serviceIntegrityDimensions` block in the internal YouTube API. |
+**YT-Export** is a professional-grade YouTube downloader designed to overcome modern web integrity challenges. By integrating **PO-Token (Proof of Origin)** injection with a fully automated **CI/CD pipeline**, this project ensures reliable, high-speed media extraction even in restricted environments.
 
 ---
 
-## 🛠 Extraction Methods
+## 🚀 System Overview
 
-### 1. Manual Extraction (Browser DevTools)
-The most reliable way to find a working token is via a manual session:
-1. Open a YouTube video in a clean browser window (Incognito recommended).
-2. Open **DevTools (F12)** > **Network Tab**.
-3. Filter for `v1/player`.
-4. Under the **Payload** tab, navigate to:
-   `context` > `serviceIntegrityDimensions` > **`poToken`**.
-5. Copy both the `poToken` and the `visitorData` found under `context` > `client`.
+The core of this project is the synergy between localized extraction logic and cloud-based automation.
 
-### 2. Automated Extraction (Headless Browser)
-To automate this, use a browser automation tool (Playwright/Puppeteer) to solve the challenge:
+### 1. The Engine (`downloader.py`)
+This script uses a customized `yt-dlp` configuration to bypass "BotGuard" and `403 Forbidden` errors.
+* **Integrity Handshake**: Injects specific `PO_TOKEN` and `VISITOR_DATA` directly into the YouTube extractor arguments.
+* **Environment Matching**: Mimics the `WEB` client version `2.20260403` with a matching Chrome User-Agent to ensure the server recognizes the request as a legitimate browser session.
+* **Muxing**: Utilizes **FFmpeg** to merge high-bitrate video and audio streams into a single `.mkv` container.
 
-```javascript
-// Example logic for token interception
-const { chromium } = require('playwright');
-
-async function getTokens() {
-  const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage();
-  
-  await page.goto('https://www.youtube.com/watch?v=YOUR_VIDEO_ID');
-  
-  // Intercept the player request
-  const [request] = await Promise.all([
-    page.waitForRequest(res => res.url().includes('v1/player')),
-  ]);
-
-  const postData = JSON.parse(request.postData());
-  const poToken = postData.context.serviceIntegrityDimensions.poToken;
-  
-  console.log("PO_TOKEN:", poToken);
-  await browser.close();
-}
-```
+### 2. The Orchestrator (`main.yml`)
+Located in `.github/workflows/`, this YAML file transforms a simple script into a **Cloud-Based Downloader**.
+* **GitHub Actions Workflow**: Runs on `ubuntu-latest`, providing a clean, high-bandwidth environment for every download.
+* **Automated Dependency Injection**: Automatically sets up **Python 3.10**, **Node.js 20** (for JS execution), and **FFmpeg**.
+* **Secure Authentication**: Uses GitHub Secrets (`YT_COOKIES`) to securely inject session data at runtime without exposing credentials in the codebase.
 
 ---
 
-## 🚀 Implementation
+## 🛠 Features
 
-Once you have the token, it must be passed in the `context` object of your API requests.
-
-### Request Body Structure
-```json
-{
-  "context": {
-    "client": {
-      "clientName": "WEB",
-      "clientVersion": "2.2024xxxx",
-      "visitorData": "YOUR_VISITOR_DATA"
-    },
-    "serviceIntegrityDimensions": {
-      "poToken": "YOUR_PO_TOKEN"
-    }
-  },
-  "videoId": "v3cL2VfFkVg"
-}
-```
+* **Manual Trigger**: Uses `workflow_dispatch` to allow users to paste a URL directly into the GitHub UI.
+* **Bypass Technology**: Specifically configured to handle the **PO-Token** challenge, restoring access to 4K and unplayable formats.
+* **Artifact Delivery**: Successfully downloaded media is automatically bundled and made available as a GitHub Artifact for easy retrieval.
+* **JS Engine Integration**: Forces a clean symlink to `node` within the runner to ensure `yt-dlp` can handle YouTube’s signature decryption in real-time.
 
 ---
 
-## ⚠️ Troubleshooting & Limits
+## 📂 Project Structure
 
-* **Token Expiry:** PO Tokens are session-bound. If you encounter a `403` after a period of success, the token has likely expired or the `visitorData` mismatch triggered a flag.
-* **IP Binding:** Tokens generated on one IP address (e.g., your local machine) may not work when used on a different IP (e.g., a VPS or GitHub Action).
-* **BotGuard Updates:** YouTube frequently updates the VM constants used to generate these tokens. If extraction fails, check for updates in the `bg.js` script on the YouTube frontend.
+| File | Role | Key Function |
+| :--- | :--- | :--- |
+| `downloader.py` | **Core Logic** | Handles `PO_TOKEN` injection and stream extraction. |
+| `.github/workflows/main.yml` | **CI/CD Pipeline** | Manages the build environment and runs the downloader in the cloud. |
+| `cookies.txt` | **Session Data** | (Generated at runtime) Provides authenticated access to YouTube. |
+
+---
+
+## 🚦 Usage via GitHub Actions
+
+1.  Navigate to the **Actions** tab in your repository.
+2.  Select the **YouTube Downloader Automation** workflow.
+3.  Click **Run workflow**.
+4.  Enter the YouTube URL in the `video_url` input field.
+5.  Once the job completes, download your media from the **Summary** page under **Artifacts**.
+
+---
+
+## ⚙️ Configuration Detail (Technical)
+
+The downloader is tuned for the **2026 Web Client** environment:
+* **Node Path**: Explicitly set to `/usr/local/bin/node` to facilitate complex signature decryption.
+* **Format Selection**: Set to `bestvideo+bestaudio/best` to ensure maximum quality archival.
+* **Wait for Input**: The script reads the URL from `stdin`, allowing the GitHub Action to pipe inputs directly from the UI.
 
 ---
 
 ## ⚖️ Disclaimer
+This tool is intended for **archival and research purposes only**. Users are responsible for adhering to YouTube's Terms of Service and local copyright regulations.
+
+---
+*Built for reliability. Powered by GitHub Actions.*
+
+---
+
 This project is for educational and research purposes only. Bypassing YouTube's integrity systems may violate their Terms of Service. Use responsibly.
 
 ---
