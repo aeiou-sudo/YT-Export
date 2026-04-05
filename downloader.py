@@ -9,22 +9,24 @@ def download_youtube_video(url):
         'outtmpl': '%(title)s.%(ext)s',
         'noplaylist': True,
         
-        # NEW: Force the specific solver path inside the Python dictionary
-        'javascript_path': '/usr/local/bin/node',
-        
+        # NEW: The "Music/Signature" bypass configuration
         'extractor_args': {
             'youtube': {
-                # 'web' is the most compatible with Node.js signature solving
-                'player_client': ['web'],
-                # This forces yt-dlp to use our Node install for the n-challenge
-                'n_challenge': ['nodejs'],
+                # 'tv' and 'android' are often less restricted for signatures than 'web'
+                'player_client': ['android', 'web'],
+                # This is the "Secret Sauce": some signatures only unlock with this
+                'skip': ['dash', 'hls'],
             }
         },
         
-        # Bypasses 'Only images available' by ignoring the signature error 
-        # and trying to fetch the stream anyway
-        'check_formats': 'cached',
+        # Force Node.js as the solver
+        'javascript_path': '/usr/local/bin/node',
+        
+        # Add a real-world User-Agent to match your cookies
+        'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        
         'quiet': False,
+        'no_warnings': False,
     }
 
     try:
