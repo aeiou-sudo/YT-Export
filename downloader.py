@@ -9,20 +9,21 @@ def download_youtube_video(url):
         'outtmpl': '%(title)s.%(ext)s',
         'noplaylist': True,
         
-        # NEW: Advanced Extractor Arguments
+        # NEW: Force the specific solver path inside the Python dictionary
+        'javascript_path': '/usr/local/bin/node',
+        
         'extractor_args': {
             'youtube': {
-                # We prioritize 'web' because our Node.js solver handles its JS best
+                # 'web' is the most compatible with Node.js signature solving
                 'player_client': ['web'],
-                # This forces the use of the specific solver we set up
+                # This forces yt-dlp to use our Node install for the n-challenge
                 'n_challenge': ['nodejs'],
             }
         },
         
-        # These flags are critical for Music Videos/Signatures
-        'dynamic_mpd': True,
-        'youtube_include_dash_manifest': True,
-        'ignoreerrors': False, # Set to False so we see the exact error if it fails
+        # Bypasses 'Only images available' by ignoring the signature error 
+        # and trying to fetch the stream anyway
+        'check_formats': 'cached',
         'quiet': False,
     }
 
