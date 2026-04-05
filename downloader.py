@@ -25,7 +25,13 @@ def download_youtube_video(url):
             'key': 'FFmpegVideoConvertor',
             'preferedformat': 'mkv',
         }],
-        
+        'extractor_args': {
+            'youtube': {
+                'player_client': ['web'],
+                'skip': ['dash', 'hls'] # Optional: skips complex manifests if they fail
+            }
+        },
+
         'cookiefile': 'cookies.txt',  # <--- Add this line
         'quiet': False,
         'no_warnings': False,

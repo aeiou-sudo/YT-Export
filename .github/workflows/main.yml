@@ -34,7 +34,13 @@ jobs:
         # This takes your secret and writes it to a file the script can see
         run: echo "${{ secrets.YT_COOKIES }}" > cookies.txt
 
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
       - name: Run Download Script
+        # We add the PATH to Node.js so yt-dlp finds it immediately
         run: |
           python downloader.py <<EOF
           ${{ github.event.inputs.video_url }}
