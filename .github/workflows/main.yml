@@ -31,24 +31,25 @@ jobs:
           sudo apt-get install -y ffmpeg
 
       - name: 5. Install Python Libraries
-        run: pip install yt-dlp yt-dlp-get-oauth2
+        run: pip install yt-dlp
 
-      - name: 6. Inject Cookies
+      - name: 6. Inject Authentication Cookies
+        # Ensure 'YT_COOKIES' is a Secret in your Repo Settings
         run: echo "${{ secrets.YT_COOKIES }}" > cookies.txt
 
       - name: 7. Execute Downloader
-        # We define the environment variables here so they are 'global' for this step
         env:
           YTDLP_NODE_PATH: /usr/local/bin/node
         run: |
-          # Create a reliable symlink that yt-dlp expects
+          # Force a clean symlink so yt-dlp finds the JS engine immediately
           sudo ln -sf $(which node) /usr/local/bin/node
           
+          # Run the script and pipe the URL input
           python downloader.py <<EOF
           ${{ github.event.inputs.video_url }}
           EOF
 
-      - name: 8. Upload Artifacts
+      - name: 8. Upload Resulting Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: youtube-media-export
