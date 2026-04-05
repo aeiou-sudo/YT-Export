@@ -9,15 +9,20 @@ def download_youtube_video(url):
         'outtmpl': '%(title)s.%(ext)s',
         'noplaylist': True,
         
-        # We remove 'extractor_args' and let yt-dlp choose the best client automatically
-        # but we force the 'n_challenge' to use the nodejs solver specifically.
-        'n_challenge': ['nodejs'],
+        # NEW: Advanced Extractor Arguments
+        'extractor_args': {
+            'youtube': {
+                # We prioritize 'web' because our Node.js solver handles its JS best
+                'player_client': ['web'],
+                # This forces the use of the specific solver we set up
+                'n_challenge': ['nodejs'],
+            }
+        },
         
-        # These three help with "Signature Solving Failed" errors
-        'allow_unplayable_formats': True,
+        # These flags are critical for Music Videos/Signatures
         'dynamic_mpd': True,
-        'youtube_include_dash_manifest': False, 
-        
+        'youtube_include_dash_manifest': True,
+        'ignoreerrors': False, # Set to False so we see the exact error if it fails
         'quiet': False,
     }
 
