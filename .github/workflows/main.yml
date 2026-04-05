@@ -20,36 +20,35 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: 3. Set up Node.js 20 (JS Runtime for Signatures)
+      - name: 3. Set up Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: 4. Install System Dependencies (FFmpeg)
+      - name: 4. Install FFmpeg
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg
 
-      - name: 5. Install Dependencies
-        run: |
-          pip install yt-dlp yt-dlp-get-oauth2
+      - name: 5. Install Python Libraries
+        run: pip install yt-dlp yt-dlp-get-oauth2
 
-      - name: 6. Inject Authentication Cookies
-        # Using GitHub Secrets to bypass bot-detection
+      - name: 6. Inject Cookies
         run: echo "${{ secrets.YT_COOKIES }}" > cookies.txt
 
-      - name: 7. Execute Downloader Script
+      - name: 7. Execute Downloader
+        # We define the environment variables here so they are 'global' for this step
+        env:
+          YTDLP_NODE_PATH: /usr/local/bin/node
         run: |
-          # Clean up the PATH
-          export PATH=$PATH:$(which node)
-          export YTDLP_NODE_PATH=$(which node)
+          # Create a reliable symlink that yt-dlp expects
+          sudo ln -sf $(which node) /usr/local/bin/node
           
-          # Force python to use the standard node location
           python downloader.py <<EOF
           ${{ github.event.inputs.video_url }}
           EOF
 
-      - name: 8. Upload Resulting Artifacts
+      - name: 8. Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: youtube-media-export
