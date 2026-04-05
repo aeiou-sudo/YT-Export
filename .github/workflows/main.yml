@@ -38,12 +38,13 @@ jobs:
         run: echo "${{ secrets.YT_COOKIES }}" > cookies.txt
 
       - name: 7. Execute Downloader Script
-        env:
-          # This is the "Magic" environment variable yt-dlp looks for
-          YTDLP_NODE_PATH: /usr/local/bin/node 
         run: |
-          # We also verify it in the shell right before running
-          echo "Using Node at: $(which node)"
+          # We manually create a symlink to make node available in a standard location
+          sudo ln -s $(which node) /usr/local/bin/node || true
+          
+          # Force the environment variable to the standard path
+          export YTDLP_NODE_PATH=/usr/local/bin/node
+          
           python downloader.py <<EOF
           ${{ github.event.inputs.video_url }}
           EOF
