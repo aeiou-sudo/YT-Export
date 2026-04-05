@@ -37,7 +37,7 @@ jobs:
       # 5. Run the downloader script
       - name: Run Download Script
         run: |
-          python your_script_name.py <<EOF
+          python downloader.py <<EOF
           ${{ github.event.inputs.video_url }}
           EOF
 
