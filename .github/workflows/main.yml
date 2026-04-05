@@ -25,7 +25,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
 
       - name: Install Dependencies
-        run: pip install yt-dlp
+        run: pip3 install yt-dlp
 
       - name: Run Download Script
         run: |
