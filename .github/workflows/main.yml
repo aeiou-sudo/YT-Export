@@ -27,6 +27,9 @@ jobs:
       - name: Install Dependencies
         run: pip3 install yt-dlp
 
+      - name: Install JS Runtime
+        run: sudo apt-get install -y nodejs # This gives yt-dlp the 'engine' it needs
+
       - name: Run Download Script
         run: |
           python downloader.py <<EOF
