@@ -12,38 +12,36 @@ on:
 jobs:
   download_job:
     runs-on: ubuntu-latest
+    # This pulls a pre-configured environment
+    container:
+      image: jrottenberg/ffmpeg:4.4-ubuntu 
 
     steps:
-      # 1. Checkout your code
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # 2. Set up Python environment
       - name: Set up Python
+        # Note: In a container, you might need to install python 
+        # or use an image that has BOTH. 
+        # For your resume, staying with 'ubuntu-latest' + Caching is actually faster.
         uses: actions/setup-python@v5
         with:
           python_version: '3.10'
 
-      # 3. Install FFmpeg (Essential for high-quality merging)
-      - name: Install FFmpeg
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      # NEW: Caching step to speed up Python libraries
+      - name: Cache Pip Dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
-      # 4. Install your project dependencies
-      - name: Install Dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install yt-dlp
+      - name: Install yt-dlp
+        run: pip install yt-dlp
 
-      # 5. Run the downloader script
       - name: Run Download Script
         run: |
           python downloader.py <<EOF
           ${{ github.event.inputs.video_url }}
           EOF
-
-      # 6. Upload the video so you can download it from GitHub
-      - name: Upload Video Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: downloaded-video
-          path: ./*.mkv  # Matches the MKV files created by the script
