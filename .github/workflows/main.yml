@@ -30,6 +30,10 @@ jobs:
       - name: Install JS Runtime
         run: sudo apt-get install -y nodejs # This gives yt-dlp the 'engine' it needs
 
+      - name: Create Cookies File
+        # This takes your secret and writes it to a file the script can see
+        run: echo "${{ secrets.YT_COOKIES }}" > cookies.txt
+
       - name: Run Download Script
         run: |
           python downloader.py <<EOF
