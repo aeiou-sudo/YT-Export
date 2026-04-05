@@ -1,55 +1,56 @@
 import yt_dlp
+import sys
 
 def download_youtube_video(url):
     ydl_opts = {
-        # 'bestvideo+bestaudio' ensures we get the highest quality of both.
-        # 'best' is the fallback if separate streams aren't available.
+        # 1. Quality & Format Logic
         'format': 'bestvideo+bestaudio/best',
-        
-        # Merge into MKV to support the most advanced codecs without re-encoding.
-        # Use 'mp4' if you need high compatibility with older players.
-        'merge_output_format': 'mp4',
-        
-        # Output template: Title.Extension
+        'merge_output_format': 'mkv', # MKV is the "Pro" choice for 4K/VP9/HDR
         'outtmpl': '%(title)s.%(ext)s',
         
-        # Ensure we use the best encoders/codecs by sorting preference
+        # 2. Preference Sorting (Ensures 4K/VP9/Opus)
         'format_sort': [
-            'res:2160', # Prefer 4K if available
-            'codec:vp9', # High-efficiency video codec
-            'codec:opus', # Superior audio codec
+            'res:2160',      # Prefer 4K
+            'codec:vp9',     # Higher efficiency than H.264
+            'codec:opus',    # Best audio quality
         ],
-        
-        # Post-processor to ensure the file is correctly muxed
-        'postprocessors': [{
-            'key': 'FFmpegVideoConvertor',
-            'preferedformat': 'mkv',
-        }],
-        'extractor_args': {
-                'youtube': {
-                    'player_client': ['web'],
-                }
-            },
-        # This is the "Secret Sauce" for signature solving
-        'allow_unplayable_formats': True,
-        'dynamic_mpd': True,
-        # This helps bypass the 'n-challenge' by ignoring certain JS errors
-        'n_client_allow_javascript': True,
 
-        'cookiefile': 'cookies.txt',  # <--- Add this line
+        # 3. Security & Bypass Logic
+        'cookiefile': 'cookies.txt', 
+        'noplaylist': True,          # Safety switch for 1000+ item lists
+        'ignoreerrors': True,
+        'n_client_allow_javascript': True,
+        
+        # 4. Extractor Arguments (Matching our YAML Node.js setup)
+        'extractor_args': {
+            'youtube': {
+                'player_client': ['web'],
+                # This helps bypass the 'n-challenge' signature check
+                'n_challenge': ['nodejs'], 
+            }
+        },
+
+        # 5. Output Management
         'quiet': False,
         'no_warnings': False,
     }
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            # Extract info to show user what is being downloaded
+            # We use 'download=True' to fetch the actual media
             info = ydl.extract_info(url, download=True)
-            print(f"\nSuccessfully downloaded: {info.get('title')}")
+            if info:
+                print(f"\nSuccessfully processed: {info.get('title')}")
+            else:
+                print("\nFailed to extract video information.")
             
     except Exception as e:
         print(f"An error occurred: {e}")
 
 if __name__ == "__main__":
-    video_url = input("Enter the YouTube URL: ")
-    download_youtube_video(video_url)
+    # Reading from stdin allows the GitHub Action to 'pipe' the URL in
+    video_url = sys.stdin.read().strip()
+    if not video_url:
+        print("Error: No URL provided.")
+    else:
+        download_youtube_video(video_url)
