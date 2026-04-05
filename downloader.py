@@ -8,7 +8,7 @@ def download_youtube_video(url):
         
         # Merge into MKV to support the most advanced codecs without re-encoding.
         # Use 'mp4' if you need high compatibility with older players.
-        'merge_output_format': 'mkv',
+        'merge_output_format': 'mp4',
         
         # Output template: Title.Extension
         'outtmpl': '%(title)s.%(ext)s',
