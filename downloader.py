@@ -3,36 +3,22 @@ import sys
 
 def download_youtube_video(url):
     ydl_opts = {
-        # 1. Quality & Format Logic
         'format': 'bestvideo+bestaudio/best',
-        'merge_output_format': 'mkv', # MKV is the "Pro" choice for 4K/VP9/HDR
+        'merge_output_format': 'mkv',
+        'cookiefile': 'cookies.txt',
         'outtmpl': '%(title)s.%(ext)s',
+        'noplaylist': True,
         
-        # 2. Preference Sorting (Ensures 4K/VP9/Opus)
-        'format_sort': [
-            'res:2160',      # Prefer 4K
-            'codec:vp9',     # Higher efficiency than H.264
-            'codec:opus',    # Best audio quality
-        ],
-
-        # 3. Security & Bypass Logic
-        'cookiefile': 'cookies.txt', 
-        'noplaylist': True,          # Safety switch for 1000+ item lists
-        'ignoreerrors': True,
-        'n_client_allow_javascript': True,
+        # We remove 'extractor_args' and let yt-dlp choose the best client automatically
+        # but we force the 'n_challenge' to use the nodejs solver specifically.
+        'n_challenge': ['nodejs'],
         
-        # 4. Extractor Arguments (Matching our YAML Node.js setup)
-        'extractor_args': {
-            'youtube': {
-                'player_client': ['web'],
-                # This helps bypass the 'n-challenge' signature check
-                'n_challenge': ['nodejs'], 
-            }
-        },
-
-        # 5. Output Management
+        # These three help with "Signature Solving Failed" errors
+        'allow_unplayable_formats': True,
+        'dynamic_mpd': True,
+        'youtube_include_dash_manifest': False, 
+        
         'quiet': False,
-        'no_warnings': False,
     }
 
     try:
