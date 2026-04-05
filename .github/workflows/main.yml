@@ -30,18 +30,21 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg
 
-      - name: 5. Install Python Dependencies (yt-dlp)
-        run: pip install yt-dlp
+      - name: 5. Install Dependencies
+        run: |
+          pip install yt-dlp yt-dlp-get-oauth2
 
       - name: 6. Inject Authentication Cookies
         # Using GitHub Secrets to bypass bot-detection
         run: echo "${{ secrets.YT_COOKIES }}" > cookies.txt
 
       - name: 7. Execute Downloader Script
-        env:
-          YTDLP_NODE_PATH: $(which node)
         run: |
-          # Use the '--allow-unplayable' flag in the command line if needed
+          # Clean up the PATH
+          export PATH=$PATH:$(which node)
+          export YTDLP_NODE_PATH=$(which node)
+          
+          # Force python to use the standard node location
           python downloader.py <<EOF
           ${{ github.event.inputs.video_url }}
           EOF
