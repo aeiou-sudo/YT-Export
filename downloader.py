@@ -25,12 +25,14 @@ def download_youtube_video(url):
             'key': 'FFmpegVideoConvertor',
             'preferedformat': 'mkv',
         }],
+        # Added multi-client support for Shorts
         'extractor_args': {
             'youtube': {
-                'player_client': ['web'],
-                'skip': ['dash', 'hls'] # Optional: skips complex manifests if they fail
+                'player_client': ['android', 'web', 'ios'],
             }
         },
+        # This helps bypass the 'n-challenge' by ignoring certain JS errors
+        'n_client_allow_javascript': True,
 
         'cookiefile': 'cookies.txt',  # <--- Add this line
         'quiet': False,
