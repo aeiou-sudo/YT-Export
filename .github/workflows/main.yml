@@ -39,11 +39,18 @@ jobs:
 
       - name: 7. Execute Downloader Script
         run: |
-          # We manually create a symlink to make node available in a standard location
-          sudo ln -s $(which node) /usr/local/bin/node || true
+          # 1. Clear any existing broken links
+          sudo rm -f /usr/local/bin/node
           
-          # Force the environment variable to the standard path
+          # 2. Create a clean symlink from the actual hosted tool cache
+          # This ensures yt-dlp sees a "Standard" executable
+          sudo ln -s $(which node) /usr/local/bin/node
+          
+          # 3. Export the path explicitly so the Python sub-process inherits it
           export YTDLP_NODE_PATH=/usr/local/bin/node
+          
+          # 4. Check if it's working (this will show in your logs)
+          /usr/local/bin/node -v
           
           python downloader.py <<EOF
           ${{ github.event.inputs.video_url }}
