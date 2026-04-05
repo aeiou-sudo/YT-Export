@@ -25,12 +25,14 @@ def download_youtube_video(url):
             'key': 'FFmpegVideoConvertor',
             'preferedformat': 'mkv',
         }],
-        # Added multi-client support for Shorts
         'extractor_args': {
-            'youtube': {
-                'player_client': ['android', 'web', 'ios'],
-            }
-        },
+                'youtube': {
+                    'player_client': ['web'],
+                }
+            },
+        # This is the "Secret Sauce" for signature solving
+        'allow_unplayable_formats': True,
+        'dynamic_mpd': True,
         # This helps bypass the 'n-challenge' by ignoring certain JS errors
         'n_client_allow_javascript': True,
 
