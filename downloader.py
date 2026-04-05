@@ -25,13 +25,8 @@ def download_youtube_video(url):
             'key': 'FFmpegVideoConvertor',
             'preferedformat': 'mkv',
         }],
-        # Try pretending to be a different client to bypass the bot check
-        'extractor_args': {
-            'youtube': {
-                'player_client': ['ios', 'android'],
-            }
-        },
         
+        'cookiefile': 'cookies.txt',  # <--- Add this line
         'quiet': False,
         'no_warnings': False,
     }
